@@ -1,0 +1,11 @@
+{
+  "name": "map-barcode-to-record-number",
+  "version": "1.0.0",
+  "description": "Map an item barcode to its Sierra item record number",
+  "main": "map-barcode.js",
+  "license": "GPL-3.0",
+  "engines": {
+    "node": ">=8.0.0"
+  },
+  "dependencies": {}
+}
