@@ -139,6 +139,18 @@ if (options.help) {
 }
 
 
+
+loadInputFile()
+.then(mapToItemRecord)
+.then(options['simple-output'] ? simpleOutput : advancedOutput)
+.then(() => process.exit(0))
+.catch(err => {
+  console.error(err)
+  process.exit(1)
+})
+
+
+
 function loadInputFile() {
   return new Promise((resolve, reject) => {
     try
@@ -148,19 +160,9 @@ function loadInputFile() {
 
       let csvParseStream = csv.parse()
       csvParseStream
-      .on('error', (err) => {
-        // console.log('loadInputFile csvParseStream error')
-        reject(err)
-      })
-      .on('end', () => {
-        // console.log('loadInputFile csvParseStream end')
-        resolve({inputData})
-      })
-      .on('data', data => {
-        // console.log('loadInputFile csvParseStream data')
-        // console.dir(data, { colors: true })
-        inputData.push(data)
-      })
+      .on('error', (err) => reject(err))
+      .on('end', () => resolve({inputData}))
+      .on('data', data => inputData.push(data))
 
       let inputFileStream =
         inputFilePath === '-'
@@ -193,12 +195,11 @@ async function mapToItemRecord(state) {
   await sierraDb.task(async t => {
     for (let row of inputData.slice(options.skip)) {
       const barcode = row[barcodeColumn]
-      // console.log('Mapping barcode %s', barcode)
       const result = await t.any(
         `
            SELECT md.record_num
-             FROM phrase_entry AS pe
-                  JOIN record_metadata AS md ON md.id = pe.record_id
+             FROM sierra_view.phrase_entry AS pe
+                  JOIN sierra_view.record_metadata AS md ON md.id = pe.record_id
             WHERE md.record_type_code = 'i'
                   AND pe.index_tag || pe.index_entry = 'b' || $1::VARCHAR
         `,
@@ -209,18 +210,6 @@ async function mapToItemRecord(state) {
   })
 
   return Object.assign({}, state, { mapping })
-}
-
-
-function dumpState(state) {
-  return new Promise((resolve, reject) => {
-    try {
-      console.dir(state, { colors: true, depth: null} )
-      resolve(state)
-    } catch (err) {
-      reject(err)
-    }
-  })
 }
 
 
@@ -270,15 +259,3 @@ function advancedOutput(state) {
     }
   })
 }
-
-
-
-loadInputFile()
-// .then(dumpState)
-.then(mapToItemRecord)
-.then(options['simple-output'] ? simpleOutput : advancedOutput)
-.then(() => process.exit(0))
-.catch(err => {
-  console.error(err)
-  process.exit(1)
-})
