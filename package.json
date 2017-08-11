@@ -1,8 +1,7 @@
 {
-  "name": "map-barcode-to-record-number",
+  "name": "@sydneyunilibrary/item-record-tools",
   "version": "1.0.0",
-  "description": "Map an item barcode to its Sierra item record number",
-  "main": "map-barcode.js",
+  "description": "A collection of tools for working with Sierra item records.",
   "license": "GPL-3.0",
   "engines": {
     "node": ">=8.0.0"
